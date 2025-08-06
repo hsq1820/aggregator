@@ -2,7 +2,7 @@ name: Aggregator Daily Task
 
 on:
   schedule:
-    - cron: "30 18 * * *"  # 北京时间凌晨 2:30
+    - cron: "0 */6 * * *"  # 北京时间凌晨 2:30
   workflow_dispatch:
 
 env:
