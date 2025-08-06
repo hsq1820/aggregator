@@ -24,11 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run: Collect subscriptions
+      - name: Run:Collect subscriptions
         run: python collect.py
 
-      - name: Run: Daily check-in
+      - name: Run:Daily check-in
         run: python checkin.py
 
-      - name: Run: Process and publish subscriptions
+      - name: Run:Process and publish subscriptions
         run: python process.py
