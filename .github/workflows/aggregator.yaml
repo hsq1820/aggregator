@@ -2,9 +2,15 @@ name: Aggregator Daily Task
 
 on:
   schedule:
-    # 每天凌晨 2:30 执行（UTC时间，需按你的时区调整）
-    - cron: "30 18 * * *"  # UTC+8 为凌晨 2:30
-  workflow_dispatch:  # 允许手动触发
+    - cron: "30 18 * * *"  # 北京时间凌晨 2:30
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+  GIST_PAT: ${{ secrets.GIST_PAT }}
+  GIST_LINK: ${{ secrets.GIST_LINK }}
+  CUSTOMIZE_LINK: ${{ secrets.CUSTOMIZE_LINK }}
+  ENABLE_SPECIAL_PROTOCOLS: ${{ vars.ENABLE_SPECIAL_PROTOCOLS }}
 
 jobs:
   run-all:
@@ -24,11 +30,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run:Collect subscriptions
-        run: python collect.py
+      - name: Check environment variables
+        run: |
+          if [ -z "$GIST_PAT" ]; then
+              echo "Error: GIST_PAT is missing"
+              exit 1
+          fi
+          if [ -z "$GIST_LINK" ]; then
+              echo "Error: GIST_LINK is missing"
+              exit 1
+          fi
+          LINK_PARTS=$(echo "$GIST_LINK" | awk -F'/' 'NF==2 && $1!="" && $2!=""')
+          if [ -z "$LINK_PARTS" ]; then
+              echo "Error: GIST_LINK is invalid"
+              exit 1
+          fi
 
-      - name: Run:Daily check-in
-        run: python checkin.py
+      - name: Run: Collect subscriptions
+        run: python -u subscribe/collect.py --all --overwrite --skip
 
-      - name: Run:Process and publish subscriptions
-        run: python process.py
+      - name: Run: Daily check-in
+        run: python -u subscribe/collect.py --all --refresh --overwrite --skip
+
+      - name: Run: Process and publish subscriptions
+        run: python -u subscribe/process.py --overwrite
+
+      - name: Timestamp
+        run: date
